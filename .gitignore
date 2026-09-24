@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+traffic_app.log
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# YOLO & Ultralytics run outputs
+runs/
+
+# Uploads & temporary files
+uploads/
+
+# OS / Editor specific
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

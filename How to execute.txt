@@ -1,0 +1,10 @@
+How to Execute the Project:
+
+1. Install Python 3.10+ (if not already installed).
+2. Install the required dependencies:
+   pip install -r requirements.txt
+3. Run the application:
+   python traffic_detection.py
+   (Or simply double-click 'Traffic Management.bat' on Windows)
+4. Open your web browser and go to:
+   http://127.0.0.1:5000/
