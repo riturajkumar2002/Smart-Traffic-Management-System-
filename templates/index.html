@@ -156,14 +156,23 @@
 
 <body>
     <header id="header">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Traffic Management Logo" width="100" height="auto">
-        <h1>Traffic Management Dashboard</h1>
+        <div style="display: flex; align-items: center;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Traffic Management Logo" width="100" height="auto">
+            <h1>Traffic Management Dashboard</h1>
+        </div>
+        <div id="systemStatusBadge" style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; background: rgba(255, 255, 255, 0.2); padding: 6px 14px; border-radius: 20px;">
+            <span style="width: 10px; height: 10px; background-color: #28a745; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px #28a745;"></span>
+            <span>Edge AI Node: Online</span>
+        </div>
     </header>
 
     <main id="mainContainer">
         <!-- Video Container -->
         <section id="videoContainer">
-            <h2>Traffic Video Feed</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h2 style="margin: 0;">Traffic Video Feed</h2>
+                <span style="font-size: 12px; color: #28a745; font-weight: bold; background: #e8f5e9; padding: 4px 10px; border-radius: 12px;">● LIVE</span>
+            </div>
             <img src="{{ url_for('video_feed') }}" alt="Live Traffic Video Feed" id="trafficVideo">
             <input type="text" id="videoUrl" placeholder="Enter live video feed URL">
             <button id="updateVideoFeed">Update Video Feed</button>
