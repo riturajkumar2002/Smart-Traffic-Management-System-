@@ -3,8 +3,14 @@ How to Execute the Project:
 1. Install Python 3.10+ (if not already installed).
 2. Install the required dependencies:
    pip install -r requirements.txt
-3. Run the application:
+
+3. Optional: Configure environment settings (see .env.example):
+   - You can specify database credentials or a custom video source (local file or IP Camera RTSP URL).
+   - If MySQL is not running, the application will still launch and stream detection in standalone mode.
+
+4. Run the application:
    python traffic_detection.py
    (Or simply double-click 'Traffic Management.bat' on Windows)
-4. Open your web browser and go to:
+
+5. Open your web browser and navigate to:
    http://127.0.0.1:5000/

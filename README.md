@@ -136,12 +136,40 @@ Then open your browser and navigate to `http://127.0.0.1:5000/`.
 
 ---
 
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/` | Web dashboard monitoring interface |
+| `GET` | `/video_feed` | Live MJPEG video stream with YOLO bounding boxes & tracking IDs |
+| `GET` | `/current_count` | Real-time JSON telemetry with current vehicle counts and density |
+| `GET` | `/filter_data` | Filter detection records by vehicle type and date range |
+| `GET` | `/download_csv` | Export filtered historical telemetry logs as CSV |
+
+---
+
+## ⚙️ Hardware & Edge Deployment
+
+### Connecting IP Cameras via RTSP
+To stream directly from on-site IP cameras connected to the PoE switch, define the RTSP stream URL in your environment or `.env` file:
+```bash
+# Example for Hikvision/Dahua/Axis RTSP stream:
+export VIDEO_SOURCE="rtsp://admin:password@192.168.1.100:554/Streaming/Channels/101"
+python traffic_detection.py
+```
+
+### Edge Device Recommendations
+- **Edge Compute Unit**: NVIDIA Jetson Orin Nano / Orin NX or Intel Core i5/i7 Edge Box.
+- **Network Switch**: 4 to 8-port Managed Gigabit PoE+ (802.3at) Switch.
+- **Cameras**: 1080p/4K ONVIF/RTSP compliant bullet or dome IP cameras with IR night vision.
+
+---
+
 ## 🧠 Future Enhancements
 
-- Live camera feed support (e.g., IP/RTSP)
-- Historical traffic data logging and analytics
-- Interactive charts (traffic patterns over time)
-- Integration with traffic lights and automated signal control systems
+- Automatic adaptive signal timing directly interfaced to traffic light relays
+- Multi-camera intersection mesh support
+- Automated anomaly detection (stalled vehicles, wrong-way driving, accidents)
 
 ---
 
