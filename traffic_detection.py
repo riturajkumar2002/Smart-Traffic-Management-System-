@@ -16,16 +16,16 @@ import mysql.connector.pooling
 db_connection = None
 db_cursor = None
 
+import config
+
 # Flask app setup
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'uploads/'
+app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 # YOLO and DeepSORT model initialization
-model = YOLO(os.path.join(BASE_DIR, 'yolov8n.pt'))
-tracker = DeepSort(max_age=30)
+model = YOLO(config.MODEL_PATH)
+tracker = DeepSort(max_age=config.MAX_TRACK_AGE)
 
 logging.basicConfig(filename='traffic_app.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -36,15 +36,21 @@ file_handler = logging.FileHandler('traffic_app.log')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-# Database connection pool (initialize ONCE)
-cnx_pool = mysql.connector.pooling.MySQLConnectionPool(
-    pool_name="my_pool",
-    pool_size=5,
-    host="localhost",
-    user="root",
-    password="newpassword123",
-    database="traffic_management"
-)
+# Database connection pool (with graceful fallback if DB is offline)
+cnx_pool = None
+try:
+    cnx_pool = mysql.connector.pooling.MySQLConnectionPool(
+        pool_name="my_pool",
+        pool_size=config.DB_POOL_SIZE,
+        host=config.DB_HOST,
+        port=config.DB_PORT,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD,
+        database=config.DB_NAME
+    )
+    logger.info("Database connection pool initialized successfully.")
+except Exception as err:
+    logger.warning(f"Database connection pool initialization skipped/failed: {err}")
 
 # Persistent vehicle counts
 persistent_counts = {"car": 0, "bus": 0, "truck": 0, "motorbike": 0, "person": 0}
@@ -62,6 +68,8 @@ color_map = {
 
 # Insert vehicle data into the database
 def insert_detection_data(vehicle_type, detected_time, color, density_value):
+    if cnx_pool is None:
+        return
     try:
         db_connection = cnx_pool.get_connection()  # Get connection from pool
         db_cursor = db_connection.cursor()
@@ -82,6 +90,8 @@ def insert_detection_data(vehicle_type, detected_time, color, density_value):
 # Fetch filtered data from the database
 @app.route("/filter_data", methods=["GET"])
 def filter_data():
+    if cnx_pool is None:
+        return jsonify([])
     try:
         db_connection = cnx_pool.get_connection()
         db_cursor = db_connection.cursor()
@@ -145,14 +155,16 @@ def calculate_density(area_km2=1):
 # Video streaming function for traffic monitoring
 def video_stream():
     global persistent_counts
-    video_path = os.path.join(BASE_DIR, 'video', 'traffic.mp4')
-    cap = cv2.VideoCapture(video_path)
+    source = config.VIDEO_SOURCE
+    if isinstance(source, str) and source.isdigit():
+        source = int(source)
+    cap = cv2.VideoCapture(source)
 
     if not cap.isOpened():
-        logger.error("Error: Unable to open video file")
+        logger.error(f"Error: Unable to open video source: {source}")
         return
 
-    logger.info("Video file opened successfully")
+    logger.info(f"Video source opened successfully: {source}")
 
     frame_interval = 1
     frame_id = 0
@@ -165,7 +177,7 @@ def video_stream():
                 break
 
             if frame_id % frame_interval == 0:
-                results = model(frame, conf=0.3)
+                results = model(frame, conf=config.CONFIDENCE_THRESHOLD)
                 detections = [
                     (int(detection.xyxy[0][0]), int(detection.xyxy[0][1]), int(detection.xyxy[0][2]), int(detection.xyxy[0][3]), float(detection.conf), int(detection.cls.item()))
                     for detection in results[0].boxes
@@ -237,6 +249,8 @@ def current_count():
 # Download CSV file route
 @app.route("/download_csv", methods=["GET"])
 def download_csv():
+    if cnx_pool is None:
+        return jsonify({"error": "Database offline or not configured"}), 503
     try:
         db_connection = cnx_pool.get_connection()
         db_cursor = db_connection.cursor()
@@ -289,6 +303,8 @@ def download_csv():
 # Close database connections after app context
 @app.teardown_appcontext
 def close_connection(exception):
+    if cnx_pool is None:
+        return
     if hasattr(cnx_pool, 'close'):
         cnx_pool.close()
     else:
@@ -301,4 +317,4 @@ def close_connection(exception):
 
 # Start Flask application
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host=config.FLASK_HOST, port=config.FLASK_PORT, debug=config.FLASK_DEBUG)
